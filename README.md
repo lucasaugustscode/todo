@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="./.github/brand.svg" width=200/>
+  <img src="./.github/brand.svg" width=100/>
 </p>
 
-<h3 align="center">
+<p align="center">
   A new concept of creating your to-do list. Save your tasks in the cloud and use on multiple devices.
-</h3>
+</p>
 
 <br/>
 
