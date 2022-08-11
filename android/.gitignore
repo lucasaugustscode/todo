@@ -19,3 +19,7 @@ buck-out/
 
 # Bundle artifacts
 *.jsbundle
+
+
+# Firebase
+/**/google-services.json

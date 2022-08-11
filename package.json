@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.2",
+    "@react-native-firebase/app": "^15.3.0",
     "babel-plugin-inline-dotenv": "^1.7.0",
     "dotenv": "^16.0.1",
     "expo": "~45.0.0",
