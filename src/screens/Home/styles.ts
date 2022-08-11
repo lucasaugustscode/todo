@@ -56,7 +56,13 @@ export const styles = StyleSheet.create({
 
     paddingTop: 48
   },
-  emptytitle: {
+  emptyImg: {
+    fontSize: 100,
+    color: theme.COLORS.gray_400,
+
+    marginBottom: 16
+  },
+  emptyTitle: {
     fontSize: theme.SIZES.sm,
     fontFamily: theme.FONTS.heading,
     color: theme.COLORS.gray_300,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   TouchableWithoutFeedback,
   Keyboard,
@@ -9,7 +9,10 @@ import {
   Alert
 } from 'react-native'
 
+import { Feather } from '@expo/vector-icons'
+
 import uuid from 'react-native-uuid'
+import firestore from '@react-native-firebase/firestore'
 
 import LogoSvg from '@assets/svgs/logo.svg'
 
@@ -26,38 +29,50 @@ import { styles } from './styles'
 
 export const Home: React.FC = () => {
   const [tasks, setTasks] = useState<ITaskDTO[]>([])
-  const [completedTasks, setCompletedTasks] = useState<string[]>([])
+  const [numberTasksCompleted, setNumberTasksCompleted] = useState(0)
 
   const [taskName, setTaskName] = useState('')
+
+  const [isLoadingCreation, setIsLoadingCreation] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  function handleCreateNewTask() {
-    const data = {
-      id: String(uuid.v4()),
-      taskName
-    }
+  async function handleCreateNewTask() {
+    try {
+      setIsLoadingCreation(true)
+      const generatedId = String(uuid.v4())
 
-    setTasks(prevState => [...prevState, data])
-    setTaskName('')
+      await firestore()
+        .collection('tasks')
+        .doc(generatedId)
+        .set({ taskName, done: false })
+
+      setTaskName('')
+    } catch {
+      Alert.alert(
+        'Ocorreu um erro',
+        'Não foi possível criar sua tarefa. Tente mais tarde.'
+      )
+    } finally {
+      setIsLoadingCreation(false)
+    }
   }
 
-  function handleCompleteTask(id: string) {
-    const checkAlreadyCompleted = completedTasks.includes(id)
+  async function handleCompleteTask(id: string) {
+    const response = await firestore().collection('tasks').doc(id).get()
+    const taskSelectedById = response.data() as ITaskDTO
 
-    if (!checkAlreadyCompleted) {
-      setCompletedTasks(prevState => [...prevState, id])
-    } else {
-      setCompletedTasks(completedTasks.filter(taskID => taskID !== id))
-    }
+    await firestore()
+      .collection('tasks')
+      .doc(id)
+      .update({ done: !taskSelectedById.done })
   }
 
   function handleDeleteTask(id: string) {
     Alert.alert('Apagar tarefa', 'Você deseja deletar essa tarefa?', [
       {
         text: 'Sim',
-        onPress: () => {
-          setTasks(tasks.filter(task => task.id !== id))
-          setCompletedTasks(completedTasks.filter(taskID => taskID !== id))
+        onPress: async () => {
+          await firestore().collection('tasks').doc(id).delete()
         }
       },
       {
@@ -66,6 +81,62 @@ export const Home: React.FC = () => {
       }
     ])
   }
+
+  useEffect(() => {
+    async function loadCreatedTasks() {
+      try {
+        setIsLoading(true)
+
+        const response = await firestore()
+          .collection('tasks')
+          .orderBy('taskName')
+          .get()
+
+        const data = response.docs.map(doc => {
+          return {
+            id: doc.id,
+            ...doc.data()
+          }
+        }) as ITaskDTO[]
+
+        setTasks(data)
+      } catch {
+        Alert.alert(
+          'Ocorreu um erro',
+          'Não foi possível carregar suas tarefas criadas. Tente mais tarde.'
+        )
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadCreatedTasks()
+  }, [])
+
+  useEffect(() => {
+    async function monitorChangesInTasks() {
+      try {
+        const subscribe = firestore()
+          .collection('tasks')
+          .orderBy('taskName')
+          .onSnapshot(querySnapshot => {
+            const data = querySnapshot.docs.map(doc => {
+              return {
+                id: doc.id,
+                ...doc.data()
+              }
+            }) as ITaskDTO[]
+
+            setTasks(data)
+            setNumberTasksCompleted(data.filter(task => task.done).length)
+          })
+
+        return () => subscribe()
+      } catch {}
+    }
+
+    monitorChangesInTasks()
+  }, [])
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -81,12 +152,16 @@ export const Home: React.FC = () => {
               onChangeText={setTaskName}
               value={taskName}
             />
-            <Button onPress={handleCreateNewTask} disabled={!taskName} />
+            <Button
+              onPress={handleCreateNewTask}
+              loading={isLoadingCreation}
+              disabled={!taskName}
+            />
           </View>
 
           <Quantities
             quantityCreated={tasks.length}
-            quantityCompleted={completedTasks.length}
+            quantityCompleted={numberTasksCompleted}
           />
 
           {isLoading ? (
@@ -104,7 +179,7 @@ export const Home: React.FC = () => {
                 <TaskCard
                   key={task.id}
                   taskName={task.taskName}
-                  completed={completedTasks.includes(task.id)}
+                  completed={task.done}
                   onPress={() => handleCompleteTask(task.id)}
                   onDelete={() => handleDeleteTask(task.id)}
                   delay={index}
@@ -114,7 +189,9 @@ export const Home: React.FC = () => {
           ) : (
             <View style={styles.empty}>
               <View style={styles.emptyContent}>
-                <Text style={styles.emptytitle}>
+                <Feather style={styles.emptyImg} name="clipboard" />
+
+                <Text style={styles.emptyTitle}>
                   Você ainda não tem tarefas cadastradas
                 </Text>
                 <Text style={styles.emptysubTitle}>

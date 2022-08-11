@@ -1,7 +1,8 @@
 import React from 'react'
 import {
   TouchableWithoutFeedback,
-  TouchableWithoutFeedbackProps
+  TouchableWithoutFeedbackProps,
+  ActivityIndicator
 } from 'react-native'
 
 import { Feather } from '@expo/vector-icons'
@@ -19,9 +20,11 @@ import { theme } from '@global/theme'
 
 import { styles } from './styles'
 
-interface Props extends TouchableWithoutFeedbackProps {}
+interface Props extends TouchableWithoutFeedbackProps {
+  loading?: boolean
+}
 
-export const Button: React.FC<Props> = ({ ...rest }) => {
+export const Button: React.FC<Props> = ({ loading, ...rest }) => {
   const activated = useSharedValue(0)
 
   const containerAnimationStyle = useAnimatedStyle(() => {
@@ -52,10 +55,15 @@ export const Button: React.FC<Props> = ({ ...rest }) => {
     <TouchableWithoutFeedback
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      disabled={loading}
       {...rest}
     >
       <Animated.View style={[styles.container, containerAnimationStyle]}>
-        <Feather name="plus-circle" color={theme.COLORS.gray_100} size={20} />
+        {loading ? (
+          <ActivityIndicator color={theme.COLORS.gray_100} size="small" />
+        ) : (
+          <Feather name="plus-circle" color={theme.COLORS.gray_100} size={20} />
+        )}
       </Animated.View>
     </TouchableWithoutFeedback>
   )

@@ -32,6 +32,7 @@ interface Props extends TouchableWithoutFeedbackProps {
 }
 
 const DURATION = 200
+const DELAY = 100
 
 export const TaskCard: React.FC<Props> = ({
   taskName,
@@ -74,9 +75,9 @@ export const TaskCard: React.FC<Props> = ({
     <TouchableWithoutFeedback {...rest}>
       <Animated.View
         style={[styles.container, containerAnimationStyle]}
-        entering={FadeInLeft.delay(delay * 100)}
-        exiting={FadeOutRight.duration(DURATION - 100)}
-        layout={Layout.duration(DURATION).delay(delay * 100)}
+        entering={FadeInLeft.delay(delay * DELAY)}
+        exiting={FadeOutRight.duration(DURATION / 2)}
+        layout={Layout.duration(DURATION).delay(DELAY)}
       >
         <View style={styles.content}>
           <Checkbox checked={completed} />
