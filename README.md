@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  A new concept of creating your to-do list. Save your tasks in the cloud and use on multiple devices.
+  A new concept of creating your to-do list.<br/>Save your tasks in the cloud and use on multiple devices.
 </p>
 
 <br/>
